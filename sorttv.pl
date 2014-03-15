@@ -24,6 +24,7 @@
 # deranjer - xbmc forum
 # iamwudu - xbmc forum
 # Nicolas Leclercq - https://sourceforge.net/u/exzz/
+# Justin Metheny
 #
 # Please goto the xbmc forum to discuss SortTV:
 # http://forum.xbmc.org/showthread.php?t=75949
@@ -2000,6 +2001,7 @@ sub match_and_sort_movie {
 			out("verbose",  "Processing results page $page_index #$result_index: ...\n");
 			
 			my $baseimgURL = "http://d3gtl9l2a4fn1j.cloudfront.net/t/p/original/";
+			my $id = $$movie{"id"} if $$movie{"id"};
 			my $moviename = $$movie{"title"} if $$movie{"title"};
 			my $altname = $$movie{"alternative_name"} if $$movie{"alternative_name"};
 			my $orgname = $$movie{"original_name"} if $$movie{"original_name"};
@@ -2027,7 +2029,8 @@ sub match_and_sort_movie {
 				if($year && $released_year) {
 					if(abs($released_year - $year) <= $yeartoleranceforerror) {
 						out("verbose", "INFO: Year also matches\n");
-						sort_movie($file, $movietitle, $released_year, $ext, $poster, $backdrop);
+						my $mpaa = get_mpaa($id);
+						sort_movie($file, $movietitle, $released_year, $ext, $poster, $backdrop, $mpaa);
 						return "TRUE";
 					} else {
 						out("warn", "WARN: Found matching movie '$movietitle', but does not match year in filename (named $year not $released_year), skipping\n");
@@ -2048,7 +2051,7 @@ sub match_and_sort_movie {
 }
 
 sub sort_movie {
-	my ($file, $title, $year, $ext, $posterimg, $backimg) = @_;
+	my ($file, $title, $year, $ext, $posterimg, $backimg, $mpaa) = @_;
 	my ($mdir, $dest);
 	my $sendxbmcnotifications = $xbmcoldwebserver;
 	$sendxbmcnotifications or $sendxbmcnotifications = $xbmcaddress;
@@ -2060,6 +2063,7 @@ sub sort_movie {
 			$location =~ s/[\/].*//ig;
 		}
 		$location =~ s/\[MOVIE_TITLE]/$title/ig;
+		$location =~ s/\[MPAA]/$mpaa/ig;
 		if($year) {
 			$location =~ s/\[YEAR1]/($year)/ig;
 			$location =~ s/\[YEAR2]/$year/ig;
@@ -2068,7 +2072,7 @@ sub sort_movie {
 			$location =~ s/[. -]*\[YEAR2]//ig;
 		}
 		if($location =~ /\[QUALITY]/i) {
-			my $quality = extract_quality($file);
+			my $quality = extract_quality($file);my $mpaa = get_mpaa($id);
 			$location =~ s/\[QUALITY]/$quality/ig;
 		}
 		# keep any "part 1" etc on the end of the new filename
@@ -2143,6 +2147,42 @@ sub sort_movie {
 					$xbmcoldwebserver = "";
 				}
 			}
+		}
+	}
+}
+
+sub get_mpaa {
+	my ($id) = @_;
+	my $parsed_json_result;
+	#ID was captured correctly and we have a match
+	eval {
+		$parsed_json_result = parse_json ($tmdb->Movies::releases({
+			'movie_id' => $id
+		}));
+	};
+	if($@) {
+		out("warn",  "WARN: Encountered error converting JSON.\n");
+		return "FALSE";
+	}
+	out("verbose",  "Checking for US MPAA Rating...\n");
+	my $result_index;
+	my $mpaa;
+	my $total_results = scalar @{$parsed_json_result->{countries}};
+	MPAA: for($result_index = 0; $result_index <= $total_results; $result_index++) {
+		#Make sure we are getting the US rating
+		if($parsed_json_result->{countries}[$result_index]{iso_3166_1} eq "US"){
+			$mpaa = $parsed_json_result->{countries}[$result_index]{certification};
+			if ($mpaa eq ""){
+				$mpaa = "NR";
+			}
+			out("verbose",  "MPAA Found! Rated: $mpaa\n");
+			#Remove those nasty PG-13 / NC-17 hyphens (this may not be neccessary, not sure how certain OS' handle hyphens in folder names)
+			$mpaa =~ s/-//g;
+			#Send it back
+			return $mpaa;
+		} else {
+			#Wasn't the US rating, moving on...
+			out("verbose",  "Wrong country: $parsed_json_result->{countries}[$result_index]{iso_3166_1}\n");
 		}
 	}
 }
