@@ -178,6 +178,10 @@ OPTIONS:
 		host for the new xbmc communication, to automatically update library when new episodes arrive
 		You probably want to set this to "localhost"
 
+	--xbmc-remote-control-port=port
+		port number for the new xbmc communication
+		You probably want to set this to "9090", if that doesn't work, try "80"
+
 	--log-file=filepath
 		Log to this file
 		If not specified, output only goes to stdout (the screen)

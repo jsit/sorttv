@@ -70,6 +70,7 @@ use IO::Socket;
 my $man = my $help = 0;
 my ($sortdir, $tvdir, $miscdir, $musicdir, $moviedir, $matchtype);
 my ($xbmcoldwebserver, $xbmcaddress);
+my $xbmcport = 9090;
 my ($newshows, $new, $log);
 my @musicext = ("aac","aif","iff","m3u","mid","midi","mp3","mpa","ra","ram","wave","wav","wma","ogg","oga","ogx","spx","flac","m4a", "pls");
 my @videoext = ("avi","mpg","mpe","mpeg-1","mpeg-2","m4v","mkv","mov","mp4","mpeg","ogm","wmv","divx","dvr-ms","3gp","m1s","mpa","mp2","m2a","mp2v","m2v","m2s","qt","asf","asx","wmx","rm","ram","rmvb","3g2","flv","swf","aepx","ale","avp","avs","bdm","bik","bin","bsf","camproj","cpi","dat","dmsm","dream","dvdmedia","dzm","dzp","edl","f4v","fbr","fcproject","hdmov","imovieproj","ism","ismv","m2p","mod","moi","mts","mxf","ogv","pds","prproj","psh","r3d","rcproject","scm","smil","sqz","stx","swi","tix","trp","ts","veg","vf","vro","webm","wlmp","wtv","xvid","yuv","3gp2","3gpp","3p2","aaf","aep","aetx","ajp","amc","amv","amx","arcut","arf","avb","axm","bdmv","bdt3","bmk","camrec","cine","clpi","cmmp","cmmtpl","cmproj","cmrec","cst","d2v","d3v","dce","dck","dcr","dcr","dir","dmb","dmsd","dmsd3d","dmss","dpa","dpg","dv","dv-avi","dvr","dvx","dxr","dzt","evo","eye","f4p","fbz","fcp","flc","flh","fli","gfp","gts","hkm","ifo","imovieproject","ircp","ismc","ivf","ivr","izz","izzy","jts","jtv","m1pg","m21","m21","m2t",
@@ -108,6 +109,7 @@ my @optionlist = (
 	"misc-dir|non-episode-dir|misc=s" => sub { set_directory($_[1], \$miscdir); },
 	"xbmc-old-web-server|xbmc-web-server|xo=s" => \$xbmcoldwebserver,
 	"xbmc-remote-control|xr=s" => \$xbmcaddress,
+	"xbmc-remote-control-port|xrp=i" => \$xbmcport,
 	"match-type|ms=s" => \$matchtype,
 	"flatten-non-eps|fne=s" => \$flattennonepisodefiles,
 	"check-for-updates|up=s" => \$checkforupdates,
@@ -370,7 +372,7 @@ sub check_for_updates {
 sub update_xbmc {
 	my $sock = new IO::Socket::INET (
 		PeerAddr => $xbmcaddress,
-		PeerPort => '9090',
+		PeerPort => $xbmcport,
 		Proto => 'tcp', 6 );
 	if($sock) {
 		print $sock '{"id":1,"method":"VideoLibrary.Scan","params":[],"jsonrpc":"2.0"}';
@@ -775,6 +777,10 @@ OPTIONS:
 --xbmc-remote-control=host
 	host for the new xbmc communication, to automatically update library when new episodes arrive
 	You probably want to set this to "localhost"
+
+--xbmc-remote-control-port=port
+	port number for the new xbmc communication
+	You probably want to set this to "9090", if that doesn't work, try "80"
 
 --log-file=filepath
 	Log to this file
