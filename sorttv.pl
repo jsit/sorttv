@@ -360,12 +360,16 @@ sub check_for_updates {
 		($localmaj, $localmin) = ($1, $2);
 	}
 	$currentversion = get "http://sourceforge.net/p/sorttv/code/ci/master/tree/.sorttv.version?format=raw";
+	# exit if network problems
 	return unless $currentversion;
 	if($currentversion =~ /(\d+).(\d+)/) {
 		($currentmaj, $currentmin) = ($1, $2);
-	}
-	if($localmaj < $currentmaj || ($localmaj == $currentmaj && $localmin < $currentmin)) {
-		out("std", "UPDATE AVAILABLE: A new version of SortTV is available!\n\tVisit http://sourceforge.net/projects/sorttv/ to get the latest version.\n\tLocal version: $version, latest release: $currentversion\n");
+		if($localmaj < $currentmaj || ($localmaj == $currentmaj && $localmin < $currentmin)) {
+			out("std", "UPDATE AVAILABLE: A new version of SortTV is available!\n\tVisit http://sourceforge.net/projects/sorttv/ to get the latest version.\n\tLocal version: $version, latest release: $currentversion\n");
+		}
+	} else {
+		# got something, but it does not conform to a valid version number
+		out("std", "Unable to determine latest release. A new version of SortTV may be available.\n\tVisit http://sourceforge.net/projects/sorttv/ to get the latest version.\n\tLocal version: $version\n");
 	}
 }
 
