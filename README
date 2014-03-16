@@ -378,6 +378,10 @@ OPTIONS:
 		If "rar" and "unzip" programs are available they are used.
 		If not specified, TRUE
 
+	--dir-permissions=[octal]
+		Set permissions on new created directories (octal format : 0775)
+		If no specified, uses system defined umask
+
 	--check-for-updates=[TRUE|FALSE]
 		Check for newer versions of SortTV
 		If not specified, TRUE

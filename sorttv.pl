@@ -258,7 +258,7 @@ my @optionlist = (
 	"music-directory|music=s" => sub { set_directory($_[1], \$musicdir); },
 	"music-extension|me=s" => \@musicext,
 	"non-media-extension|nm=s" => \@nonmediaext,
-    "dir-permissions|dp=s" => \$dir_perms,
+	"dir-permissions|dp=s" => \$dir_perms,
 	"h|help|?" => \$help, man => \$man
 );
 
@@ -969,6 +969,10 @@ OPTIONS:
 	If "rar" and "unzip" programs are available they are used.
 	If not specified, TRUE
 
+--dir-permissions=[octal]
+	Set permissions on new created directories (octal format : 0775)
+	If no specified, uses system defined umask
+
 --check-for-updates=[TRUE|FALSE]
 	Check for newer versions of SortTV
 	If not specified, TRUE
@@ -984,9 +988,6 @@ OPTIONS:
 		Disables fetching images
 		Disables looking up files named "Show - EpTitle.ext" or by airdate
 		Changes rename format (if applicable) to not include episode titles
-
---dir-permissions
-    Set permissions on new created directories (octal format : 0775)
 
 EXAMPLES:
 Does a sort, as configured in sorttv.conf:
@@ -1426,7 +1427,7 @@ sub dir_matching_show_name {
 		my $newshowdir = $tvdir . $newshow;
 		out("std", "INFO: making show directory: $newshowdir\n");
 		if(mkdir($newshowdir, 0777)) {
-            chmod(oct($dir_perms), $newshowdir) if defined $dir_perms;
+			chmod(oct($dir_perms), $newshowdir) if defined $dir_perms;
 			fetchshowimages(resolve_show_name($pureshowname), $newshowdir) if $fetchimages ne "FALSE";
 			return $newshowdir;
 		} else {
@@ -1455,7 +1456,7 @@ sub dir_matching_season {
 	}
 	my $newpath = "$show/$newdir";
 	if(mkdir($newpath, 0777)) {
-        chmod(oct($dir_perms), $newpath) if defined $dir_perms;
+		chmod(oct($dir_perms), $newpath) if defined $dir_perms;
 		fetchseasonimages(resolve_show_name($pureshowname), $show, $series, $newpath) if $fetchimages ne "FALSE";
 		return $newpath; # try again now that the dir exists
 	} else {
