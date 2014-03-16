@@ -426,7 +426,13 @@ A: Make sure you followed the instructions on installing the cpan modules. If th
 
 Q: I am having trouble installing the cpan modules...
 A: First, try repeating running the cpan commands.
+
 If cpan modules are not passing the tests, you can force cpan to install them anyway. Run sudo cpan, then type "force install Switch", where Switch is the name of the module you are trying to install.
+
+On Debian/Ubuntu you could try:
+	apt-get install make build-essential libxml-sax-expat-perl
+	cpan File::Copy::Recursive File::Glob LWP::Simple TVDB::API Getopt::Long Switch WWW::TheMovieDB::Search XML::Simple
+	perl -MXML::SAX -e "XML::SAX->add_parser(q(XML::SAX::Expat))->save_parsers()"
 
 Q: Why doesn't SortTV download images for TV shows/episodes on Windows?
 A: This is currently a limitation in the TVDB::API cpan module. The images should download fine for movies, or if you use SortTV on Linux all images should download correctly. Images downloaded by the module on Windows are corrupted, therefore this features is now automatically disabled for Windows users. Feel free to discuss this problem with the creator of the module.
