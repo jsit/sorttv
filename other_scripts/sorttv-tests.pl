@@ -278,6 +278,12 @@ my $log;
 		"RIP: A Remix Manifesto DVD.avi"=>"$movie_dir/RiP!- A Remix Manifesto 2009 SD.avi",
 		);
 
+	test_sorttv("movie renaming w/rating",
+		"\"--rename-movie-format=[MOVIE_TITLE] [YEAR2] [RATING]\" --rename-media=TRUE --fetch-movie-images=FALSE",
+		"RIP: A Remix Manifesto DVD.avi"=>"$movie_dir/RiP!- A Remix Manifesto 2009 NR.avi",
+		"Night of the Living Dead.avi"=>"$movie_dir/Night of the Living Dead 1968 R.avi",
+		);
+
 	test_sorttv("sort movie without renaming",
 		"--rename-media=FALSE --fetch-movie-images=FALSE", 
 		"RIP: A Remix Manifesto DVD.avi"=>"$movie_dir/RIP: A Remix Manifesto DVD.avi",

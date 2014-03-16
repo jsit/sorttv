@@ -230,6 +230,7 @@ OPTIONS:
 			[YEAR1]: "(2011)"
 			[YEAR2]: "2011"
 			[QUALITY]: " HD" (or " SD") - extracted from original file name
+			[RATING]: "PG" - MPAA rating (US)
 			/: A sub-directory (folder) - movies can be in their own directories
 		If not specified the format is, "[MOVIE_TITLE] [YEAR2]/[MOVIE_TITLE] [YEAR1]"
 
@@ -420,7 +421,8 @@ Q: SortTV wont run, it gives an error indicating that modules are missing (cant 
 A: Make sure you followed the instructions on installing the cpan modules. If that doesn't work, see below.
 
 Q: I am having trouble installing the cpan modules...
-A: If they are not passing the tests, you can force cpan to install them anyway. Run sudo cpan, then type "force install Switch", where Switch is the name of the module you are trying to install.
+A: First, try repeating running the cpan commands.
+If cpan modules are not passing the tests, you can force cpan to install them anyway. Run sudo cpan, then type "force install Switch", where Switch is the name of the module you are trying to install.
 
 Q: Why doesn't SortTV download images for TV shows/episodes on Windows?
 A: This is currently a limitation in the TVDB::API cpan module. The images should download fine for movies, or if you use SortTV on Linux all images should download correctly. Images downloaded by the module on Windows are corrupted, therefore this features is now automatically disabled for Windows users. Feel free to discuss this problem with the creator of the module.

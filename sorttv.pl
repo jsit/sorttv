@@ -828,6 +828,7 @@ OPTIONS:
 		[YEAR1]: "(2011)"
 		[YEAR2]: "2011"
 		[QUALITY]: " HD" (or " SD") - extracted from original file name
+		[RATING]: "PG" - MPAA rating (US)
 		/: A sub-directory (folder) - movies can be in their own directories
 	If not specified the format is, "[MOVIE_TITLE] [YEAR2]/[MOVIE_TITLE] [YEAR1]"
 
@@ -2029,8 +2030,8 @@ sub match_and_sort_movie {
 				if($year && $released_year) {
 					if(abs($released_year - $year) <= $yeartoleranceforerror) {
 						out("verbose", "INFO: Year also matches\n");
-						my $mpaa = get_mpaa($id);
-						sort_movie($file, $movietitle, $released_year, $ext, $poster, $backdrop, $mpaa);
+						my $rating = get_rating($id);
+						sort_movie($file, $movietitle, $released_year, $ext, $poster, $backdrop, $rating);
 						return "TRUE";
 					} else {
 						out("warn", "WARN: Found matching movie '$movietitle', but does not match year in filename (named $year not $released_year), skipping\n");
@@ -2038,8 +2039,9 @@ sub match_and_sort_movie {
 					}
 				} else {
 					# choose year to use
+					my $rating = get_rating($id);
 					my $yeartouse = $year ? $year : $released_year ? $released_year : "";
-					sort_movie($file, $movietitle, $yeartouse, $ext, $poster, $backdrop);
+					sort_movie($file, $movietitle, $yeartouse, $ext, $poster, $backdrop, $rating);
 					return "TRUE";
 				}
 			} 
@@ -2051,7 +2053,7 @@ sub match_and_sort_movie {
 }
 
 sub sort_movie {
-	my ($file, $title, $year, $ext, $posterimg, $backimg, $mpaa) = @_;
+	my ($file, $title, $year, $ext, $posterimg, $backimg, $mpaa_rating) = @_;
 	my ($mdir, $dest);
 	my $sendxbmcnotifications = $xbmcoldwebserver;
 	$sendxbmcnotifications or $sendxbmcnotifications = $xbmcaddress;
@@ -2063,7 +2065,7 @@ sub sort_movie {
 			$location =~ s/[\/].*//ig;
 		}
 		$location =~ s/\[MOVIE_TITLE]/$title/ig;
-		$location =~ s/\[MPAA]/$mpaa/ig;
+		$location =~ s/\[RATING]/$mpaa_rating/ig;
 		if($year) {
 			$location =~ s/\[YEAR1]/($year)/ig;
 			$location =~ s/\[YEAR2]/$year/ig;
@@ -2072,7 +2074,7 @@ sub sort_movie {
 			$location =~ s/[. -]*\[YEAR2]//ig;
 		}
 		if($location =~ /\[QUALITY]/i) {
-			my $quality = extract_quality($file);my $mpaa = get_mpaa($id);
+			my $quality = extract_quality($file);
 			$location =~ s/\[QUALITY]/$quality/ig;
 		}
 		# keep any "part 1" etc on the end of the new filename
@@ -2151,9 +2153,13 @@ sub sort_movie {
 	}
 }
 
-sub get_mpaa {
+sub get_rating {
 	my ($id) = @_;
 	my $parsed_json_result;
+	my $result_index;
+	my $mpaa;
+	
+	out("verbose",  "Checking for US MPAA Rating...\n");
 	#ID was captured correctly and we have a match
 	eval {
 		$parsed_json_result = parse_json ($tmdb->Movies::releases({
@@ -2164,27 +2170,26 @@ sub get_mpaa {
 		out("warn",  "WARN: Encountered error converting JSON.\n");
 		return "FALSE";
 	}
-	out("verbose",  "Checking for US MPAA Rating...\n");
-	my $result_index;
-	my $mpaa;
+
 	my $total_results = scalar @{$parsed_json_result->{countries}};
 	MPAA: for($result_index = 0; $result_index <= $total_results; $result_index++) {
-		#Make sure we are getting the US rating
-		if($parsed_json_result->{countries}[$result_index]{iso_3166_1} eq "US"){
+		# Make sure we are getting the US rating
+		if($parsed_json_result->{countries}[$result_index]{iso_3166_1} eq "US") {
 			$mpaa = $parsed_json_result->{countries}[$result_index]{certification};
-			if ($mpaa eq ""){
+			if ($mpaa eq "") {
 				$mpaa = "NR";
 			}
-			out("verbose",  "MPAA Found! Rated: $mpaa\n");
-			#Remove those nasty PG-13 / NC-17 hyphens (this may not be neccessary, not sure how certain OS' handle hyphens in folder names)
+			out("verbose",  "MPAA rating found! Rated: $mpaa\n");
+			# Remove those nasty PG-13 / NC-17 hyphens
 			$mpaa =~ s/-//g;
-			#Send it back
+			# Send it back
 			return $mpaa;
 		} else {
-			#Wasn't the US rating, moving on...
-			out("verbose",  "Wrong country: $parsed_json_result->{countries}[$result_index]{iso_3166_1}\n");
+			# Wasn't the US rating, moving on...
+			out("verbose",  "Not US rating: $parsed_json_result->{countries}[$result_index]{iso_3166_1}\n");
 		}
 	}
+	return "NR";
 }
 
 sub out {
