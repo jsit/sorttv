@@ -374,6 +374,7 @@ sub check_for_updates {
 }
 
 sub update_xbmc {
+	$new = '' if !$new;
 	my $sock = new IO::Socket::INET (
 		PeerAddr => $xbmcaddress,
 		PeerPort => $xbmcport,
