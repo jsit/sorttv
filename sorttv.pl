@@ -521,13 +521,15 @@ sub is_movie {
 	# conditions for it to be checked
 	if($moviedir && (is_video_to_be_sorted($file, $filename) || (-d $file and $sort_movie_dir eq "TRUE"))) {
 		# check regex
-		if($filename =~ /(.*?)\s*-?\.?\s*\(?\[?((?:20|19)\d{2})\)?\]?(?:BDRip|\[Eng]|DVDRip|DVD|Bluray|XVID|DIVX|720|1080|HQ|x264|R5)*.*?(\.\w*$)/i
-		|| $filename =~ /(.*?)\.?(?:[[\]{}()]|\[Eng]|BDRip|DVDRip|DVD|Bluray|XVID|DIVX|720|1080|HQ|x264|R5)+.*?()(\.\w*$)/i
+		my $dashspace_re = '(?:\.|\s|-|_)';
+		my $urlatstart_re = "(?:^\\[\\swww\\.\\w*\\.\\w*\\s]$dashspace_re*)";
+		if($filename =~ /$urlatstart_re?(.*?)$dashspace_re*\(?\[?((?:20|19)\d{2})\)?\]?(?:BDRip|\[Eng]|DVDRip|DVD|Bluray|XVID|XvidHD|DIVX|720|1080|HQ|ITA|AC3|x264|x265|R5)*.*?(\.\w*$)/i
+		|| $filename =~ /(.*?)\.?(?:[[\]{}()]|\[Eng]|BDRip|DVDRip|DVD|Bluray|XVID|XvidHD|DIVX|720|1080|HQ|ITA|AC3|x264|x265|R5)+.*?()(\.\w*$)/i
 		|| $filename =~ /(.*?)()(\.\w*$)/i || $filename =~ /(.*)()()/) {
 			my $title = $1;
 			my $year = $2;
 			my $ext = $3;
-			$title =~ s/(?:\[Eng]|BDRip|DVDRip|DVD|Bluray|XVID|DIVX|720|1080|HQ|x264|R5|[[\]{}()])//ig;
+			$title =~ s/(?:\[Eng]|BDRip|DVDRip|DVD|Bluray|XVID|XvidHD|DIVX|720|1080|HQ|ITA|AC3|x264|x265|R5|[[\]{}()])//ig;
 			# at this point if it is not a known movie it is an "other"
 			if(match_and_sort_movie($title, $year, $ext, $file) eq "TRUE") {
 				return 1;
@@ -546,16 +548,19 @@ sub is_tv_episode {
 		# check regex
 		my $dirsandfile = $file;
 		$dirsandfile =~ s/\Q$sortdir\E//;
-		
-		if($filename =~ /(.*?)(?:\.|\s|-|_|\[)+[Ss]0*(\d+)(?:\.|\s|-|_)*[Ee]0*(\d+).*/
+		my $dashspace_re = '(?:\.|\s|-|_)';
+		my $urlatstart_re = "(?:^\\[\\swww\\.\\w*\\.\\w*\\s]$dashspace_re*)";
+		my $spaceslashdashorfirstcaptured_re = '(?:\.|\s|\/|\\|-|\1)';
+
+		if($filename =~ /$urlatstart_re?(.*?)(?:\.|\s|-|_|\[)+[Ss]0*(\d+)$dashspace_re*[Ee]0*(\d+).*/
 		# "Show/Season 1/S1E1.avi" or "Show/Season 1/1.avi" or "Show Season 1/101.avi" or "Show/Season 1/1x1.avi" or "Show Series 1 Episode 1.avi" etc
-		|| $dirsandfile =~ /(.*?)(?:\.|\s|\/|\\|-|\1)*(?:Season|Series|\Q$seasontitle\E)\D?0*(\d+)(?:\.|\s|\/|\\|-|\1)+[Ss]0*\2(?:\.|\s|-|_)*[Ee]0*(\d+).*/i
-		|| $dirsandfile =~ /(.*?)(?:\.|\s|\/|\\|-|\1)*(?:Season|Series|\Q$seasontitle\E)\D?0*(\d+)(?:\.|\s|\/|\\|-|\1)+\[?0*\2?\s*[xX-]?\s*0*(\d{1,2}).*/i
-		|| $dirsandfile =~ /(.*?)(?:\.|\s|\/|\\|-|\1)*(?:Season|Series|\Q$seasontitle\E)\D?0*(\d+)(?:\.|\s|\/|\\|-|\1)+\d??(?:[ .-]*Episode[ .-]*)?0*(\d{1,2}).*/i
+		|| $dirsandfile =~ /$urlatstart_re?(.*?)$spaceslashdashorfirstcaptured_re*(?:Season|Series|\Q$seasontitle\E)\D?0*(\d+)$spaceslashdashorfirstcaptured_re+[Ss]0*\2$dashspace_re*[Ee]0*(\d+).*/i
+		|| $dirsandfile =~ /$urlatstart_re?(.*?)$spaceslashdashorfirstcaptured_re*(?:Season|Series|\Q$seasontitle\E)\D?0*(\d+)$spaceslashdashorfirstcaptured_re+\[?0*\2?\s*[xX-]?\s*0*(\d{1,2}).*/i
+		|| $dirsandfile =~ /$urlatstart_re?(.*?)$spaceslashdashorfirstcaptured_re*(?:Season|Series|\Q$seasontitle\E)\D?0*(\d+)$spaceslashdashorfirstcaptured_re+\d??(?:[ .-]*Episode[ .-]*)?0*(\d{1,2}).*/i
 		#  not a date, but is 1x1 or 1-1
-		|| ($filename !~ /(\d{4}[-.]\d{1,2}[-.]\d{1,2})/ && $filename =~ /(.*)(?:\.|\s|-|_)+\[?0*(\d+)\s*[xX-]\s*0*(\d+).*/)
-		|| $filename =~ /(.*)(?:\.|\s|-|_)+0*(\d)(\d{2})(?:\.|\s).*/
-		|| ($matchtype eq "LIBERAL" && filename($file) =~ /(.*)(?:\.|\s|-|_)0*(\d+)\D*0*(\d+).*/)) {
+		|| ($filename !~ /(\d{4}[-.]\d{1,2}[-.]\d{1,2})/ && $filename =~ /$urlatstart_re?(.*)$dashspace_re+\[?0*(\d+)\s*[xX-]\s*0*(\d+).*/)
+		|| $filename =~ /$urlatstart_re?(.*)$dashspace_re+0*(\d)(\d{2})(?:\.|\s).*/
+		|| ($matchtype eq "LIBERAL" && filename($file) =~ /(.*)${dashspace_re}0*(\d+)\D*0*(\d+).*/)) {
 			$pureshowname = $1;
 			$pureshowname = fixpurename($pureshowname);
 			$showname = fixtitle($pureshowname);
