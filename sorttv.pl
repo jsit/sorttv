@@ -555,6 +555,8 @@ sub is_tv_episode {
 		if($filename =~ /$urlatstart_re?(.*?)(?:\.|\s|-|_|\[)+[Ss]0*(\d+)$dashspace_re*[Ee]0*(\d+).*/
 		# "Show/Season 1/S1E1.avi" or "Show/Season 1/1.avi" or "Show Season 1/101.avi" or "Show/Season 1/1x1.avi" or "Show Series 1 Episode 1.avi" etc
 		|| $dirsandfile =~ /$urlatstart_re?(.*?)$spaceslashdashorfirstcaptured_re*(?:Season|Series|\Q$seasontitle\E)\D?0*(\d+)$spaceslashdashorfirstcaptured_re+[Ss]0*\2$dashspace_re*[Ee]0*(\d+).*/i
+		# Show.S11E11.something/show.1111.blah.ext
+		|| $dirsandfile =~ /$urlatstart_re?(.*?)$dashspace_re*[Ss]0*(\d+)$dashspace_re*[Ee]0*(\d+).*$spaceslashdashorfirstcaptured_re+\1\2.*/i
 		|| $dirsandfile =~ /$urlatstart_re?(.*?)$spaceslashdashorfirstcaptured_re*(?:Season|Series|\Q$seasontitle\E)\D?0*(\d+)$spaceslashdashorfirstcaptured_re+\[?0*\2?\s*[xX-]?\s*0*(\d{1,2}).*/i
 		|| $dirsandfile =~ /$urlatstart_re?(.*?)$spaceslashdashorfirstcaptured_re*(?:Season|Series|\Q$seasontitle\E)\D?0*(\d+)$spaceslashdashorfirstcaptured_re+\d??(?:[ .-]*Episode[ .-]*)?0*(\d{1,2}).*/i
 		#  not a date, but is 1x1 or 1-1
