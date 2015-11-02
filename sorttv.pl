@@ -1049,12 +1049,10 @@ END
 sub fixtitle {
 	my ($title) = @_;
 	$title = lc($title);
-	$title =~ s/,|\.the\.|\bthe\b//ig;
-	$title =~ s/\.and\.|\band\b//ig;
-	$title =~ s/[&+'_:"!]//ig;
+	$title =~ s/,|\.the\.|\bthe\b/ /ig;
+	$title =~ s/\.and\.|\band\b/ /ig;
 	$title =~ s/(.*\/)(.*)/$2/;
 	$title = remdot($title);
-	$title =~ s/\d|\s|\(|\)//ig;
 	# make sure that didn't remove everything
 	if($title) {
 		return $title;
@@ -1134,11 +1132,14 @@ sub substitute_tvdb_id {
 # removes dots and underscores for creating dirs
 sub remdot {
 	my ($title) = @_;
-	$title =~ s/\./ /ig;
-	$title =~ s/_/ /ig;
-	$title =~ s/-/ /ig;
+	# replace spaces and spacing (incl. unicode)
+	$title =~ s/\p{Z}|\p{M}|[._-]/ /ig;
+	# remove punctuation, symbols, and other (incl. unicode)
+	$title =~ s/\p{P}|\p{S}|\p{C}//ig;
+	# for some reason the above leaves behind ordinal value 226 (0xE2), when removing endash (226 128 147)
+	$title =~ s/\x{E2}//ig;
 	# remove double spaces
-	$title =~ s/\s\s/ /ig;
+	$title =~ s/\p{Z}+/ /ig;
 	# don't start or end on whitespace
 	$title =~ s/\s$//ig;
 	$title =~ s/^\s//ig;
@@ -2030,7 +2031,7 @@ sub match_and_sort_movie {
 			my $backdrop = $baseimgURL . $$movie{"backdrop_path"} if $$movie{"backdrop_path"};
 			{
 				no warnings 'uninitialized';
-				out("verbose",  "INFO: Comparing $title to $moviename,$altname,$orgname\n");
+				out("verbose",  "INFO: Comparing $title (".fixtitle($title).") to $moviename (".fixtitle($moviename)."),$altname,$orgname\n");
 			}
 			if(fixtitle($moviename) eq fixtitle($title)
 			|| (defined $altname && scalar $altname && fixtitle($altname) eq fixtitle($title))
