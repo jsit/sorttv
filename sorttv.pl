@@ -483,21 +483,29 @@ sub sort_directory {
 		# here we attempt to sort each type of media
 		# movie should come last since it will attempt to find a matching movie name on tmdb
 		} else {
-			# try to find a matching sort method
-			unless(is_music($file, $filename) 
-			|| is_season_directory($file, $filename) 
-			|| is_tv_episode($file, $filename)
-			|| is_movie($file, $filename)) {
-				# if it does not match the requirements for any sort method,
-				# either recursively sort each directory, or the file is an "other" 
-				if(-d $file && $treatdir eq "RECURSIVELY_SORT_CONTENTS") {
-					out("verbose", "INFO: Entering into directory or compressed file $file\n");
-					sort_directory("$file/");
-					# removes any empty directories from the to-sort directory and sub-directories 
-					finddepth(sub{rmdir},"$sortd");
-				} elsif($miscdir && $tvdir ne "KEEP_IN_SAME_DIRECTORIES") {
-					# move anything else
-					sort_other ("OTHER", "$miscdir", $file);
+			eval {
+				# try to find a matching sort method
+				unless(is_music($file, $filename) 
+				|| is_season_directory($file, $filename) 
+				|| is_tv_episode($file, $filename)
+				|| is_movie($file, $filename)) {
+					# if it does not match the requirements for any sort method,
+					# either recursively sort each directory, or the file is an "other" 
+					if(-d $file && $treatdir eq "RECURSIVELY_SORT_CONTENTS") {
+						out("verbose", "INFO: Entering into directory or compressed file $file\n");
+						sort_directory("$file/");
+						# removes any empty directories from the to-sort directory and sub-directories 
+						finddepth(sub{rmdir},"$sortd");
+					} elsif($miscdir && $tvdir ne "KEEP_IN_SAME_DIRECTORIES") {
+						# move anything else
+						sort_other ("OTHER", "$miscdir", $file);
+					}
+				}
+			};
+			if ($@) {
+				out("warn", "WARN: Error sorting $file: $@->what\n");
+				if($@->what =~ /Deep:/) {
+					out("warn", "Perhaps try deleting the .cache database...\n");
 				}
 			}
 		}
